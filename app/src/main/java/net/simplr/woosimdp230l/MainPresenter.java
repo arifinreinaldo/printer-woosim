@@ -46,6 +46,7 @@ public class MainPresenter {
     String itemName = "";
     String itemBarcode = "";
     String palletNo = "";
+    int index = 0;
 
     MainPresenter(View view, SharedPreferences sp) {
         this.view = view;
@@ -63,18 +64,20 @@ public class MainPresenter {
     }
 
     void doPrint() {
+        index = 0;
         if (records.size() > 0) {
             String first = records.get(0);
             String mac = first.split(";")[0].trim();
             disposables.add(
                     connectBluetooth(mac).subscribe(aBoolean -> {
                         if (aBoolean) {
-                            for (int x = 0; x < records.size(); x++) {
-                                splitRecord(records.get(x));
-                                printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
-                                Thread.sleep(100);
-                            }
-                            doDisconnect();
+//                            for (int x = 0; x < records.size(); x++) {
+//                                splitRecord(records.get(x));
+//                                printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
+//                                Thread.sleep(100);
+//                            }
+//                            doDisconnect();
+                            doRecursivePrinting();
                         } else {
                             view.closeActivity(false, "Failed to Connect");
                         }
@@ -83,6 +86,30 @@ public class MainPresenter {
                     })
             );
         }
+    }
+
+    void doRecursivePrinting() {
+        Completable.fromAction(() -> {
+            splitRecord(records.get(index));
+            printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
+        }).delay(100, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                index++;
+                if (index < records.size()) {
+                    doRecursivePrinting();
+                } else {
+                    editor.putString(sp_rec, "");
+                    editor.apply();
+                    doDisconnect();
+                }
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+        });
     }
 
     void splitRecord(String value) {
@@ -261,7 +288,7 @@ public class MainPresenter {
             final String newRecord = oldRecord + separator + value;
             editor.putString(sp_rec, newRecord);
             editor.apply();
-        }).delay(500, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
+        }).delay(200, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
             @Override
             public void onComplete() {
                 view.onComplete();
@@ -283,7 +310,11 @@ public class MainPresenter {
                 records.add(row.get(x));
             }
         }
-        doPrint();
+        if (records.size() == 0) {
+            view.closeActivity(false, "No Data to Print");
+        } else {
+            doPrint();
+        }
 
     }
 

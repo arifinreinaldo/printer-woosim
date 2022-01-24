@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -44,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (value == null) {
             value = "";
         }
-        Toast.makeText(getApplicationContext(), action + " " + value, Toast.LENGTH_SHORT).show();
         if (action != null) {
             if (action.equalsIgnoreCase("SinglePrint")) {
                 if (value != null) {
@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                     presenter.doPrintAll();
                 }
             }
+        } else {
+            Toast.makeText(getApplicationContext(), "No External Argument", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
@@ -92,11 +95,10 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
     @Override
     public void closeActivity(boolean bool, String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        Intent data = new Intent();
-        data.putExtra("isSuccess", bool);
-        data.putExtra("message", message);
-        setResult(RESULT_OK, data);
+//        Intent data = new Intent();
+//        data.putExtra("isSuccess", bool);
+//        data.putExtra("message", message);
+//        setResult(RESULT_OK, data);
         finish();
     }
 

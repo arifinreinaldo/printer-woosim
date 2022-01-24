@@ -10,7 +10,8 @@
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,30 +29,12 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <Button
-            android:id="@+id/buttonSave"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Save MAC" />
-        <Button
-            android:id="@+id/buttonConnect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="doConnect"
-            android:text="Connect" />
-        <Button
-            android:id="@+id/buttonDisconne"
-            android:layout_width="wrap_content"
-            android:onClick="doDisconnect"
-            android:layout_height="wrap_content"/>
-
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/loading"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
         android:background="#FFFFFF">
 
         <com.airbnb.lottie.LottieAnimationView
