@@ -1,69 +1,82 @@
 package net.simplr.woosimdp230l;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.LinearLayoutCompat;
-
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+
+import com.dascom.print.connection.BluetoothConnection;
+import com.dascom.print.utils.BluetoothUtils;
+
+import net.simplr.woosimdp230l.databinding.ActivityMainBinding;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
 public class MainActivity extends AppCompatActivity implements MainPresenter.View {
-    private Context context;
-    private EditText etMac;
     SharedPreferences sp;
     private final String sp_file = "woosimdp230lmac";
     private final String sp_mac = "macaddress";
     private String mac;
-
-    private LinearLayoutCompat loading;
     private MainPresenter presenter;
-
+    ActivityMainBinding binding;
+    BluetoothConnection bluetoothConnection;
+    AdapterDevice adapter;
+    List<Device> listDevice = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        context = this;
-
-        etMac = findViewById(R.id.Mac);
-        sp = context.getSharedPreferences(sp_file, Context.MODE_PRIVATE);
-        mac = sp.getString(sp_mac, "");
-        System.out.println("mac : " + mac);
-        if (!mac.equals("")) {
-            etMac.setText(mac);
-        }
-        loading = findViewById(R.id.loading);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        sp = getSharedPreferences(sp_file, Context.MODE_PRIVATE);
         presenter = new MainPresenter(this, sp);
-//        presenter.doSinglePrint("00:15:83:16:19:89", "MB01R0001", "2022-02-02", "80", "grams", "4955773-1", "02PDX12F", "SAMPLE ESSENTIAL OIL, LEMONGRASS, 2ML", "", "");
+
         String action = getIntent().getStringExtra("ACTION_PRINT");
         String value = getIntent().getStringExtra("TXT_TO_PRINT");
-        if (value == null) {
-            value = "";
-        }
-        if (action != null) {
-            if (action.equalsIgnoreCase("SinglePrint")) {
-                if (value != null) {
-                    System.out.println("intent TXT_TO_PRINT: " + value);
-                    presenter.addSinglePrint(value);
+        presenter.processArgument(action, value);
+        adapter = new AdapterDevice(this, listDevice);
+        adapter.setClickListener((view, position) -> {
+                    Toast.makeText(getBaseContext(), "Address selected", Toast.LENGTH_SHORT).show();
+                    presenter.saveBluetoothAddress(adapter.getItem(position).getAddress());
                 }
-            } else {
-                if (action.equalsIgnoreCase("startPrint")) {
-                    presenter.clearRecord();
-                } else if (action.equalsIgnoreCase("addPrintRecord")) {
-                    presenter.addRecord(value);
-                } else if (action.equalsIgnoreCase("doPrint")) {
-                    presenter.doPrintAll();
-                }
-            }
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mac = sp.getString(sp_mac, "");
+        if (mac.isEmpty()) {
+            //create adapter
+            binding.listDevice.setLayoutManager(new LinearLayoutManager(this));
+            binding.listDevice.setAdapter(adapter);
+            checkActivateBluetooth();
         } else {
-            Toast.makeText(getApplicationContext(), "No External Argument", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
             finish();
         }
+    }
+
+    private void checkActivateBluetooth() {
+        if (!BluetoothUtils.isEnable()) {
+            BluetoothUtils.openBluetooth(this, isOn -> {
+                if (isOn) {
+                    presenter.getBluetoothDevice();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Failed to activate bluetooth", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
+        }
+        presenter.getBluetoothDevice();
     }
 
     @Override
@@ -74,12 +87,12 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
     @Override
     public void showLoading() {
-        loading.setVisibility(View.VISIBLE);
+        binding.loading.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void hideLoading() {
-        loading.setVisibility(View.GONE);
+        binding.loading.setVisibility(View.GONE);
     }
 
 
@@ -112,16 +125,15 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         finish();
     }
 
-    public void doDisconnect(View view) {
-        presenter.doPrintAll();
-    }
+    @Override
+    public void showBluetoothData(List<Device> devices) {
+        if (!devices.isEmpty()) {
+            adapter.setData(devices);
+            binding.loading.setVisibility(View.GONE);
+        } else {
+            Toast.makeText(getApplicationContext(), "No Bluetooth Found", Toast.LENGTH_SHORT).show();
+            finish();
+        }
 
-    public void onPrintLog(String message) {
-        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-        finish();
-    }
-
-    public void doConnect(View view) {
-        presenter.doConnect("00:15:83:16:19:89");
     }
 }

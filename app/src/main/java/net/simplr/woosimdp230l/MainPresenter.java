@@ -1,7 +1,7 @@
 package net.simplr.woosimdp230l;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;
-import android.widget.Toast;
 
 import com.dascom.print.ZPL;
 import com.dascom.print.connection.BluetoothConnection;
@@ -11,8 +11,8 @@ import com.dascom.print.utils.BluetoothUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -34,6 +34,7 @@ public class MainPresenter {
     String oldRecord = "";
     final String separator = "@@";
     ArrayList<String> records = new ArrayList<>();
+    private final String sp_mac = "macaddress";
 
 
     String paramMAC = "";
@@ -68,6 +69,10 @@ public class MainPresenter {
         if (records.size() > 0) {
             String first = records.get(0);
             String mac = first.split(";")[0].trim();
+            String savedMac = spData.getString(sp_rec, "");
+            if (!savedMac.isEmpty() && mac.isEmpty()) {
+                mac = savedMac;
+            }
             disposables.add(
                     connectBluetooth(mac).subscribe(aBoolean -> {
                         if (aBoolean) {
@@ -318,6 +323,67 @@ public class MainPresenter {
 
     }
 
+    public void processArgument(String action, String value) {
+        if (value == null) {
+            value = "";
+        }
+        if (action != null) {
+            if (action.equalsIgnoreCase("SinglePrint")) {
+                if (value != null) {
+                    addSinglePrint(value);
+                }
+            } else {
+                if (action.equalsIgnoreCase("startPrint")) {
+                    clearRecord();
+                } else if (action.equalsIgnoreCase("addPrintRecord")) {
+                    addRecord(value);
+                } else if (action.equalsIgnoreCase("doPrint")) {
+                    doPrintAll();
+                }
+            }
+        }
+    }
+
+    public void saveBluetoothAddress(String address) {
+        Completable.fromAction(() -> {
+            editor.putString(sp_mac, address);
+            editor.apply();
+        }).delay(100, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                view.onComplete();
+            }
+
+            @Override
+            public void onError(@NonNull Throwable e) {
+
+            }
+        });
+    }
+
+    Observable<Set<BluetoothDevice>> observeBluetoothDevice() {
+        return Observable.just(BluetoothUtils.getBondedDevices()).
+                subscribeOn(Schedulers.io()).
+                delay(1, TimeUnit.SECONDS).
+                doOnSubscribe(disposable -> view.showLoading()).
+                observeOn(AndroidSchedulers.mainThread()).
+                doFinally(() -> view.hideLoading());
+    }
+
+    public void getBluetoothDevice() {
+        disposables.add(observeBluetoothDevice().subscribe(bluetoothDevices -> {
+            ArrayList<Device> listDevice = new ArrayList<>();
+            for (int x = 0; x < 100; x++) {
+                for (BluetoothDevice device : bluetoothDevices) {
+                    listDevice.add(new Device(device.getName(), device.getAddress()));
+                }
+            }
+            view.showBluetoothData(listDevice);
+        }, throwable -> {
+            view.closeActivity(false, throwable.getMessage());
+        }));
+    }
+
     interface View {
         void showLoading();
 
@@ -331,6 +397,7 @@ public class MainPresenter {
 
         void onComplete();
 
-        void onPrintLog(String message);
+        void showBluetoothData(List<Device> devices);
+
     }
 }

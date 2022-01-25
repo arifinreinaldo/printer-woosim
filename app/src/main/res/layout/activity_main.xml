@@ -11,24 +11,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:padding="5dp">
 
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:layout_marginBottom="10dp"
+            android:text="Bluetooth Device(s)"
+            android:textSize="20dp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Setup MAC Address" />
-
-            <EditText
-                android:id="@+id/Mac"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </LinearLayout>
-
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listDevice"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <androidx.appcompat.widget.LinearLayoutCompat
@@ -46,34 +42,4 @@
             app:lottie_loop="true"
             app:lottie_rawRes="@raw/bluetooth" />
     </androidx.appcompat.widget.LinearLayoutCompat>
-    <!--    <Button-->
-    <!--        android:id="@+id/buttonConnect"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:text="Connect"-->
-    <!--        tools:layout_editor_absoluteX="42dp"-->
-    <!--        tools:layout_editor_absoluteY="59dp"-->
-    <!--        android:onClick="btnConnect"-->
-    <!--        tools:ignore="MissingConstraints" />-->
-
-    <!--    <Button-->
-    <!--        android:id="@+id/buttonPrint"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:text="Print"-->
-    <!--        tools:layout_editor_absoluteX="42dp"-->
-    <!--        tools:layout_editor_absoluteY="138dp"-->
-    <!--        android:onClick="btnPrint"-->
-    <!--        tools:ignore="MissingConstraints" />-->
-
-    <!--    <Button-->
-    <!--        android:id="@+id/buttonDisconnect"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:text="Disconnect"-->
-    <!--        tools:layout_editor_absoluteX="46dp"-->
-    <!--        tools:layout_editor_absoluteY="228dp"-->
-    <!--        android:onClick="btnDC"-->
-    <!--        tools:ignore="MissingConstraints" />-->
-
 </FrameLayout>
