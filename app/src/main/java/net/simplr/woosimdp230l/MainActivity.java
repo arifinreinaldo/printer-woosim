@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -30,6 +31,23 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     BluetoothConnection bluetoothConnection;
     AdapterDevice adapter;
     List<Device> listDevice = new ArrayList<>();
+    String action, value;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        action = intent.getStringExtra("ACTION_PRINT");
+        value = intent.getStringExtra("TXT_TO_PRINT");
+        if (action == null) {
+            action = "";
+        }
+        if (value == null) {
+            value = "";
+        }
+        Log.d("Printer", "onCreate: " + action + " - " + value);
+        presenter.processArgument(action, value);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,8 +57,15 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         sp = getSharedPreferences(sp_file, Context.MODE_PRIVATE);
         presenter = new MainPresenter(this, sp);
 
-        String action = getIntent().getStringExtra("ACTION_PRINT");
-        String value = getIntent().getStringExtra("TXT_TO_PRINT");
+        action = getIntent().getStringExtra("ACTION_PRINT");
+        value = getIntent().getStringExtra("TXT_TO_PRINT");
+        if (action == null) {
+            action = "";
+        }
+        if (value == null) {
+            value = "";
+        }
+        Log.d("Printer", "onCreate: " + action + " - " + value);
         presenter.processArgument(action, value);
         adapter = new AdapterDevice(this, listDevice);
         adapter.setClickListener((view, position) -> {
@@ -60,8 +85,15 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             binding.listDevice.setAdapter(adapter);
             checkActivateBluetooth();
         } else {
-            Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
-            finish();
+            if (action.isEmpty() && value.isEmpty()) {
+                try {
+                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
+                    Thread.sleep(500);
+                    finish();
+                } catch (Exception e) {
+
+                }
+            }
         }
     }
 
@@ -130,6 +162,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (!devices.isEmpty()) {
             adapter.setData(devices);
             binding.loading.setVisibility(View.GONE);
+            binding.data.setVisibility(View.VISIBLE);
         } else {
             Toast.makeText(getApplicationContext(), "No Bluetooth Found", Toast.LENGTH_SHORT).show();
             finish();

@@ -2,6 +2,7 @@ package net.simplr.woosimdp230l;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.dascom.print.ZPL;
 import com.dascom.print.connection.BluetoothConnection;
@@ -23,6 +24,7 @@ import io.reactivex.rxjava3.observers.DisposableCompletableObserver;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MainPresenter {
+    String TAG = "Dascom";
     private IConnection mIConnection;
     private ZPL zpl;
     private View view;
@@ -66,15 +68,18 @@ public class MainPresenter {
 
     void doPrint() {
         index = 0;
+        Log.d(TAG, "doPrint: " + records.size());
         if (records.size() > 0) {
             String first = records.get(0);
             String mac = first.split(";")[0].trim();
-            String savedMac = spData.getString(sp_rec, "");
+            String savedMac = spData.getString(sp_mac, "");
             if (!savedMac.isEmpty() && mac.isEmpty()) {
                 mac = savedMac;
             }
+
             disposables.add(
                     connectBluetooth(mac).subscribe(aBoolean -> {
+                        Log.d(TAG, "doPrint: connect " + aBoolean);
                         if (aBoolean) {
 //                            for (int x = 0; x < records.size(); x++) {
 //                                splitRecord(records.get(x));
@@ -135,10 +140,11 @@ public class MainPresenter {
         mIConnection = new BluetoothConnection(BluetoothUtils.getBluetoothDevice(address));
         return Observable.just(mIConnection.connect()).
                 subscribeOn(Schedulers.io()).
-                delay(1, TimeUnit.SECONDS).
                 doOnSubscribe(disposable -> view.showLoading()).
                 observeOn(AndroidSchedulers.mainThread()).
-                doFinally(() -> view.hideLoading());
+                doFinally(() -> view.hideLoading()).doOnError(throwable -> {
+            Log.d(TAG, "connectBluetooth: "+throwable.getMessage());
+        });
     }
 
     /* External call is using this function blocks*/
@@ -245,6 +251,7 @@ public class MainPresenter {
             disposables.add(disconnectBluetooth().subscribeWith(new DisposableCompletableObserver() {
                 @Override
                 public void onComplete() {
+                    Log.d("discon", "onComplete: disconnect ");
                     view.closeActivity(true, "Done Print");
                 }
 
@@ -257,6 +264,7 @@ public class MainPresenter {
     }
 
     Completable disconnectBluetooth() {
+        Log.d("discon", "disconnectBluetooth: " + mIConnection);
         return Completable.fromAction(() -> mIConnection.disconnect());
     }
 
@@ -293,10 +301,10 @@ public class MainPresenter {
             final String newRecord = oldRecord + separator + value;
             editor.putString(sp_rec, newRecord);
             editor.apply();
-        }).delay(200, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
+        }).delay(10, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
             @Override
             public void onComplete() {
-                view.onComplete();
+
             }
 
             @Override
@@ -308,6 +316,7 @@ public class MainPresenter {
 
     public void doPrintAll() {
         oldRecord = spData.getString(sp_rec, "");
+        Log.d("TAG", "doPrintAll: " + oldRecord);
         List<String> row = Arrays.asList(oldRecord.split(separator));
         records.clear();
         for (int x = 0; x < row.size(); x++) {
@@ -324,22 +333,17 @@ public class MainPresenter {
     }
 
     public void processArgument(String action, String value) {
-        if (value == null) {
-            value = "";
-        }
-        if (action != null) {
-            if (action.equalsIgnoreCase("SinglePrint")) {
-                if (value != null) {
-                    addSinglePrint(value);
-                }
-            } else {
-                if (action.equalsIgnoreCase("startPrint")) {
-                    clearRecord();
-                } else if (action.equalsIgnoreCase("addPrintRecord")) {
-                    addRecord(value);
-                } else if (action.equalsIgnoreCase("doPrint")) {
-                    doPrintAll();
-                }
+        if (action.equalsIgnoreCase("SinglePrint")) {
+            if (value != null) {
+                addSinglePrint(value);
+            }
+        } else {
+            if (action.equalsIgnoreCase("startPrint")) {
+                clearRecord();
+            } else if (action.equalsIgnoreCase("addPrintRecord")) {
+                addRecord(value);
+            } else if (action.equalsIgnoreCase("doPrint")) {
+                doPrintAll();
             }
         }
     }
@@ -373,10 +377,8 @@ public class MainPresenter {
     public void getBluetoothDevice() {
         disposables.add(observeBluetoothDevice().subscribe(bluetoothDevices -> {
             ArrayList<Device> listDevice = new ArrayList<>();
-            for (int x = 0; x < 100; x++) {
-                for (BluetoothDevice device : bluetoothDevices) {
-                    listDevice.add(new Device(device.getName(), device.getAddress()));
-                }
+            for (BluetoothDevice device : bluetoothDevices) {
+                listDevice.add(new Device(device.getName(), device.getAddress()));
             }
             view.showBluetoothData(listDevice);
         }, throwable -> {
