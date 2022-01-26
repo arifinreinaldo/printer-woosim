@@ -36,7 +36,12 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-
+        setIntent(intent);
+        Log.d("Printer", "onNewIntent: ");
+        processData();
+    }
+    private void processData(){
+        Intent intent = getIntent();
         action = intent.getStringExtra("ACTION_PRINT");
         value = intent.getStringExtra("TXT_TO_PRINT");
         if (action == null) {
@@ -45,10 +50,9 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (value == null) {
             value = "";
         }
-        Log.d("Printer", "onCreate: " + action + " - " + value);
+        Log.d("Printer", "data: " + action + " - " + value);
         presenter.processArgument(action, value);
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,23 +60,14 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         setContentView(binding.getRoot());
         sp = getSharedPreferences(sp_file, Context.MODE_PRIVATE);
         presenter = new MainPresenter(this, sp);
-
-        action = getIntent().getStringExtra("ACTION_PRINT");
-        value = getIntent().getStringExtra("TXT_TO_PRINT");
-        if (action == null) {
-            action = "";
-        }
-        if (value == null) {
-            value = "";
-        }
-        Log.d("Printer", "onCreate: " + action + " - " + value);
-        presenter.processArgument(action, value);
         adapter = new AdapterDevice(this, listDevice);
         adapter.setClickListener((view, position) -> {
                     Toast.makeText(getBaseContext(), "Address selected", Toast.LENGTH_SHORT).show();
                     presenter.saveBluetoothAddress(adapter.getItem(position).getAddress());
                 }
         );
+        Log.d("Printer", "onCreate: ");
+        processData();
     }
 
     @Override
@@ -89,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 try {
                     Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
                     Thread.sleep(500);
-                    finish();
+                    finishAffinity();
                 } catch (Exception e) {
 
                 }
@@ -104,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                     presenter.getBluetoothDevice();
                 } else {
                     Toast.makeText(getApplicationContext(), "Failed to activate bluetooth", Toast.LENGTH_SHORT).show();
-                    finish();
+                    finishAffinity();
                 }
             });
         }
@@ -135,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         data.putExtra("isSuccess", bool);
         data.putExtra("message", "");
         setResult(RESULT_OK, data);
-        finish();
+        finishAffinity();
     }
 
     @Override
@@ -144,7 +139,8 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 //        data.putExtra("isSuccess", bool);
 //        data.putExtra("message", message);
 //        setResult(RESULT_OK, data);
-        finish();
+        this.finishAffinity();
+//        System.exit(0);
     }
 
     @Override
@@ -154,7 +150,8 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
     @Override
     public void onComplete() {
-        finish();
+        finishAffinity();
+//        System.exit(0);
     }
 
     @Override
@@ -165,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             binding.data.setVisibility(View.VISIBLE);
         } else {
             Toast.makeText(getApplicationContext(), "No Bluetooth Found", Toast.LENGTH_SHORT).show();
-            finish();
+            finishAffinity();
         }
 
     }
