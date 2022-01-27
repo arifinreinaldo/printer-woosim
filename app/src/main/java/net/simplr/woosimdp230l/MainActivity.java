@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     @Override
     public void showLoading() {
         Log.d("Printer", "showLoading: ");
-        binding.loading.setVisibility(View.VISIBLE);
+//        binding.loading.setVisibility(View.VISIBLE);
     }
 
     @Override
