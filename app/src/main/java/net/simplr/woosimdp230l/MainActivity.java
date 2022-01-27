@@ -40,7 +40,8 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Log.d("Printer", "onNewIntent: ");
         processData();
     }
-    private void processData(){
+
+    private void processData() {
         Intent intent = getIntent();
         action = intent.getStringExtra("ACTION_PRINT");
         value = intent.getStringExtra("TXT_TO_PRINT");
@@ -50,11 +51,32 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (value == null) {
             value = "";
         }
-        Log.d("Printer", "data: " + action + " - " + value);
-        presenter.processArgument(action, value);
+
+        if (!action.isEmpty() || !value.isEmpty()) {
+            Log.d("Printer", "data: " + action + " - " + value);
+            presenter.processArgument(action, value);
+        } else {
+            mac = sp.getString(sp_mac, "");
+            if (mac.isEmpty()) {
+                //create adapter
+                binding.listDevice.setLayoutManager(new LinearLayoutManager(this));
+                binding.listDevice.setAdapter(adapter);
+                checkActivateBluetooth();
+            } else {
+                try {
+                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
+                    Thread.sleep(500);
+                    finishAffinity();
+                } catch (Exception e) {
+
+                }
+            }
+        }
     }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -73,23 +95,6 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     @Override
     protected void onResume() {
         super.onResume();
-        mac = sp.getString(sp_mac, "");
-        if (mac.isEmpty()) {
-            //create adapter
-            binding.listDevice.setLayoutManager(new LinearLayoutManager(this));
-            binding.listDevice.setAdapter(adapter);
-            checkActivateBluetooth();
-        } else {
-            if (action.isEmpty() && value.isEmpty()) {
-                try {
-                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
-                    Thread.sleep(500);
-                    finishAffinity();
-                } catch (Exception e) {
-
-                }
-            }
-        }
     }
 
     private void checkActivateBluetooth() {
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
     @Override
     public void showLoading() {
+        Log.d("Printer", "showLoading: ");
         binding.loading.setVisibility(View.VISIBLE);
     }
 

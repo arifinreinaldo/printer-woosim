@@ -51,6 +51,7 @@ public class MainPresenter {
     String palletNo = "";
     int index = 0;
     String mac = "";
+    int retry = 0;
 
     MainPresenter(View view, SharedPreferences sp) {
         this.view = view;
@@ -100,46 +101,40 @@ public class MainPresenter {
     }
 
     void doRecursivePrinting() {
-        if (!mIConnection.isConnected()) {
-            connectBluetooth(mac).subscribe(aBoolean -> {
-                Log.d(TAG, "doPrint: connect " + aBoolean);
-                if (aBoolean) {
-//                            for (int x = 0; x < records.size(); x++) {
-//                                splitRecord(records.get(x));
-//                                printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
-//                                Thread.sleep(100);
-//                            }
-//                            doDisconnect();
+//        if (!mIConnection.isConnected()) {
+//            connectBluetooth(mac).subscribe(aBoolean -> {
+//                Log.d(TAG, "doPrint: connect " + aBoolean);
+//                if (aBoolean) {
+//                    doRecursivePrinting();
+//                } else {
+//                    view.closeActivity(false, "Failed to Connect");
+//                }
+//            }, throwable -> {
+//                view.closeActivity(false, throwable.getMessage());
+//            });
+//        } else {
+        Completable.fromAction(() -> {
+            splitRecord(records.get(index));
+            printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
+        }).delay(100, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
+            @Override
+            public void onComplete() {
+                index++;
+                if (index < records.size()) {
                     doRecursivePrinting();
                 } else {
-                    view.closeActivity(false, "Failed to Connect");
+                    editor.putString(sp_rec, "");
+                    editor.apply();
+                    doDisconnect();
                 }
-            }, throwable -> {
-                view.closeActivity(false, throwable.getMessage());
-            });
-        } else {
-            Completable.fromAction(() -> {
-                splitRecord(records.get(index));
-                printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
-            }).delay(100, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
-                @Override
-                public void onComplete() {
-                    index++;
-                    if (index < records.size()) {
-                        doRecursivePrinting();
-                    } else {
-                        editor.putString(sp_rec, "");
-                        editor.apply();
-                        doDisconnect();
-                    }
-                }
+            }
 
-                @Override
-                public void onError(@NonNull Throwable e) {
-                    view.closeActivity(false, e.getMessage());
-                }
-            });
-        }
+            @Override
+            public void onError(@NonNull Throwable e) {
+                view.closeActivity(false, e.getMessage());
+            }
+        });
+//        }
     }
 
     void splitRecord(String value) {
@@ -157,13 +152,18 @@ public class MainPresenter {
     }
 
     Observable<Boolean> connectBluetooth(String address) {
+        retry++;
         mIConnection = new BluetoothConnection(BluetoothUtils.getBluetoothDevice(address));
         return Observable.just(mIConnection.connect()).
                 subscribeOn(Schedulers.io()).
                 doOnSubscribe(disposable -> view.showLoading()).
                 observeOn(AndroidSchedulers.mainThread()).
                 doFinally(() -> view.hideLoading()).doOnError(throwable -> {
-            Log.d(TAG, "connectBluetooth: " + throwable.getMessage());
+            if (retry < 2) {
+                connectBluetooth(address);
+            } else {
+                view.showError("Failed to Connect");
+            }
         });
     }
 
@@ -203,7 +203,7 @@ public class MainPresenter {
 //
             triggerZPL();
         } catch (Exception e) {
-            view.showError("print LSH receipt : " + e.getMessage());
+//            view.showError("print LSH receipt : " + e.getMessage());
             e.printStackTrace();
         }
     }
