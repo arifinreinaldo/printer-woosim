@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     private final String sp_mac = "macaddress";
     private String mac;
     private MainPresenter presenter;
+    private String[] arrArgs;
     ActivityMainBinding binding;
     BluetoothConnection bluetoothConnection;
     AdapterDevice adapter;
@@ -45,14 +46,20 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Intent intent = getIntent();
         action = intent.getStringExtra("ACTION_PRINT");
         value = intent.getStringExtra("TXT_TO_PRINT");
+        arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (action == null) {
             action = "";
         }
         if (value == null) {
             value = "";
         }
-
-        if (!action.isEmpty() || !value.isEmpty()) {
+        if (arrArgs == null) {
+            arrArgs = new String[0];
+        }
+        if (arrArgs.length > 0) {
+            Log.d("Printer", "processData: "+arrArgs.length);
+            presenter.processArray(arrArgs);
+        } else if (!action.isEmpty() || !value.isEmpty()) {
             Log.d("Printer", "data: " + action + " - " + value);
             presenter.processArgument(action, value);
         } else {

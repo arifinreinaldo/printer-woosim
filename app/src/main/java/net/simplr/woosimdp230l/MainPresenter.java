@@ -355,6 +355,13 @@ public class MainPresenter {
 
     }
 
+    public void processArray(String[] values) {
+        for (int x = 0; x < values.length; x++) {
+            addRecord(values[x]);
+        }
+        doPrintAll();
+    }
+
     public void processArgument(String action, String value) {
         if (action.equalsIgnoreCase("SinglePrint")) {
             if (value != null) {
