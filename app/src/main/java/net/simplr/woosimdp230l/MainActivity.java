@@ -19,7 +19,6 @@ import net.simplr.woosimdp230l.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements MainPresenter.View {
     SharedPreferences sp;
@@ -31,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     ActivityMainBinding binding;
     BluetoothConnection bluetoothConnection;
     AdapterDevice adapter;
-    List<Device> listDevice = new ArrayList<>();
+    List<BluetoothDevice> listDevice = new ArrayList<>();
     String action, value;
 
     @Override
@@ -57,7 +56,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             arrArgs = new String[0];
         }
         if (arrArgs.length > 0) {
-            Log.d("Printer", "processData: "+arrArgs.length);
+            Log.d("Printer", "processData: " + arrArgs.length);
             presenter.processArray(arrArgs);
         } else if (!action.isEmpty() || !value.isEmpty()) {
             Log.d("Printer", "data: " + action + " - " + value);
@@ -168,7 +167,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     }
 
     @Override
-    public void showBluetoothData(List<Device> devices) {
+    public void showBluetoothData(List<BluetoothDevice> devices) {
         if (!devices.isEmpty()) {
             adapter.setData(devices);
             binding.loading.setVisibility(View.GONE);

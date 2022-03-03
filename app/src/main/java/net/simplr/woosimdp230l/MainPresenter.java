@@ -406,11 +406,7 @@ public class MainPresenter {
 
     public void getBluetoothDevice() {
         disposables.add(observeBluetoothDevice().subscribe(bluetoothDevices -> {
-            ArrayList<Device> listDevice = new ArrayList<>();
-            for (BluetoothDevice device : bluetoothDevices) {
-                listDevice.add(new Device(device.getName(), device.getAddress()));
-            }
-            view.showBluetoothData(listDevice);
+            view.showBluetoothData(new ArrayList<>(bluetoothDevices));
         }, throwable -> {
             view.closeActivity(false, throwable.getMessage());
         }));
@@ -429,7 +425,7 @@ public class MainPresenter {
 
         void onComplete();
 
-        void showBluetoothData(List<Device> devices);
+        void showBluetoothData(List<BluetoothDevice> devices);
 
     }
 }

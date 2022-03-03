@@ -1,5 +1,6 @@
 package net.simplr.woosimdp230l;
 
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,17 +14,17 @@ import java.util.List;
 
 public class AdapterDevice extends RecyclerView.Adapter<AdapterDevice.ViewHolder> {
 
-    private List<Device> mData = new ArrayList<>();
+    private List<BluetoothDevice> mData = new ArrayList<>();
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    AdapterDevice(Context context, List<Device> data) {
+    AdapterDevice(Context context, List<BluetoothDevice> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData.addAll(data);
     }
 
-    public void setData(List<Device> data) {
+    public void setData(List<BluetoothDevice> data) {
         mData.clear();
         mData.addAll(data);
         notifyDataSetChanged();
@@ -68,7 +69,7 @@ public class AdapterDevice extends RecyclerView.Adapter<AdapterDevice.ViewHolder
     }
 
     // convenience method for getting data at click position
-    Device getItem(int id) {
+    BluetoothDevice getItem(int id) {
         return mData.get(id);
     }
 
