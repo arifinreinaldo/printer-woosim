@@ -8,7 +8,9 @@ import com.dascom.print.ZPL;
 import com.dascom.print.connection.BluetoothConnection;
 import com.dascom.print.connection.IConnection;
 import com.dascom.print.utils.BluetoothUtils;
+import com.woosim.printer.WoosimCmd;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,7 +27,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MainPresenter {
     String TAG = "Dascom";
-    private IConnection mIConnection;
+    private BluetoothCustom mIConnection;
     private ZPL zpl;
     private View view;
     private final CompositeDisposable disposables = new CompositeDisposable();
@@ -83,12 +85,6 @@ public class MainPresenter {
                     connectBluetooth(mac).subscribe(aBoolean -> {
                         Log.d(TAG, "doPrint: connect " + aBoolean);
                         if (aBoolean) {
-//                            for (int x = 0; x < records.size(); x++) {
-//                                splitRecord(records.get(x));
-//                                printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
-//                                Thread.sleep(100);
-//                            }
-//                            doDisconnect();
                             doRecursivePrinting();
                         } else {
                             view.closeActivity(false, "Failed to Connect");
@@ -101,21 +97,19 @@ public class MainPresenter {
     }
 
     void doRecursivePrinting() {
-//        if (!mIConnection.isConnected()) {
-//            connectBluetooth(mac).subscribe(aBoolean -> {
-//                Log.d(TAG, "doPrint: connect " + aBoolean);
-//                if (aBoolean) {
-//                    doRecursivePrinting();
-//                } else {
-//                    view.closeActivity(false, "Failed to Connect");
-//                }
-//            }, throwable -> {
-//                view.closeActivity(false, throwable.getMessage());
-//            });
-//        } else {
         Completable.fromAction(() -> {
-            splitRecord(records.get(index));
-            printLSHReceipt(receiptNo, receiptDate, qty, uom, lotNo, itemCode, itemName, itemBarcode, palletNo);
+            String value = records.get(index);
+            Log.d(TAG, "doRecursivePrinting: " + value);
+            final byte[] cmd_print = WoosimCmd.printData();
+            byte[] valByte = value.getBytes("windows-874");
+            System.out.println("printText value : " + value + " -- " + value.getBytes().length);
+            ByteArrayOutputStream byteStream = new ByteArrayOutputStream(512);
+            byteStream.write(WoosimCmd.setCodeTable(WoosimCmd.MCU_RX, WoosimCmd.CT_WIN874, WoosimCmd.FONT_LARGE));
+            byteStream.write(valByte);
+            byteStream.write(cmd_print);
+
+            mIConnection.send(WoosimCmd.initPrinter(), 0, 0);
+            mIConnection.send(byteStream.toByteArray(), 0, 0);
         }).delay(100, TimeUnit.MILLISECONDS).subscribeWith(new DisposableCompletableObserver() {
             @Override
             public void onComplete() {
@@ -153,7 +147,7 @@ public class MainPresenter {
 
     Observable<Boolean> connectBluetooth(String address) {
         retry++;
-        mIConnection = new BluetoothConnection(BluetoothUtils.getBluetoothDevice(address));
+        mIConnection = new BluetoothCustom(BluetoothUtils.getBluetoothDevice(address));
         return Observable.just(mIConnection.connect()).
                 subscribeOn(Schedulers.io()).
                 doOnSubscribe(disposable -> view.showLoading()).

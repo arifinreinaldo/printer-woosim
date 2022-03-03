@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 //        data.putExtra("isSuccess", bool);
 //        data.putExtra("message", message);
 //        setResult(RESULT_OK, data);
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
         this.finishAffinity();
 //        System.exit(0);
     }
