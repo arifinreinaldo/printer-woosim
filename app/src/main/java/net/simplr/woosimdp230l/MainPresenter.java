@@ -1,5 +1,6 @@
 package net.simplr.woosimdp230l;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -90,9 +91,19 @@ public class MainPresenter {
         }
     }
 
+    private static BluetoothAdapter getAdapter() {
+        return BluetoothAdapter.getDefaultAdapter();
+    }
+
+    private static BluetoothDevice getBluetoothDevice(String mac) {
+        BluetoothAdapter adapter = getAdapter();
+        String tempMac = mac.toUpperCase();
+        return adapter != null && BluetoothAdapter.checkBluetoothAddress(tempMac) ? adapter.getRemoteDevice(tempMac) : null;
+    }
+
     Boolean connectBluetoothNative(String address) {
         retry++;
-        mIConnection = new BluetoothCustom(BluetoothUtils.getBluetoothDevice(address));
+        mIConnection = new BluetoothCustom(getBluetoothDevice(address));
         return mIConnection.connect();
     }
 
