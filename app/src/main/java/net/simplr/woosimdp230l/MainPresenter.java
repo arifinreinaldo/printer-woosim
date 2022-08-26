@@ -68,9 +68,7 @@ public class MainPresenter {
             String first = records.get(0);
             mac = first.split(";")[0].trim();
             String savedMac = spData.getString(sp_mac, "");
-            if (!savedMac.isEmpty() && mac.isEmpty()) {
-                mac = savedMac;
-            }
+            mac = savedMac;
             try {
                 ExecutorService threadpool = Executors.newCachedThreadPool();
                 Future<Boolean> futureTask = threadpool.submit(() -> connectBluetoothNative(mac));
