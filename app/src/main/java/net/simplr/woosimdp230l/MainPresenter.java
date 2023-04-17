@@ -1,21 +1,33 @@
 package net.simplr.woosimdp230l;
 
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Looper;
 import android.util.Log;
 
 import com.dascom.print.ZPL;
 import com.dascom.print.utils.BluetoothUtils;
 import com.woosim.printer.WoosimCmd;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import honeywell.connection.ConnectionBase;
+import honeywell.connection.Connection_Bluetooth;
+import honeywell.printer.DocumentEZ;
+import honeywell.printer.DocumentLP;
 
 public class MainPresenter {
     String TAG = "Dascom";
@@ -207,6 +219,78 @@ public class MainPresenter {
         }
     }
 
+    public void processOneilData(String[] arrArgs) {
+        byte[] printData = {0};
+        DocumentEZ docEZ = new DocumentEZ("MF204");
+        DocumentLP docLP = new DocumentLP("!");
+        //=============GENERATING RECEIPT====================================//
+        try {
+            //Record:TEXT:kalimat nya:TEXT:X:TEXT:Y
+            String savedMac = spData.getString(sp_mac, "");
+            ConnectionBase conn = Connection_Bluetooth.createClient(savedMac, false);
+            for (int i = 0; i < arrArgs.length; i++) {
+                String record = arrArgs[i];
+                if (record.startsWith("Image")) {
+                    String recordData[] = record.split(":IMAGE:");
+                    Bitmap bmp = view.getAssetData(recordData[1]);
+                    if (bmp != null) {
+                        try {
+                            docLP.writeImage(bmp, 832);
+                        } catch (Exception e) {
+                            Log.d(TAG, "processOneilData: ");
+                        }
+                        printData = docLP.getDocumentData();
+                        if (!conn.getIsOpen()) {
+                            conn.open();
+                        }
+                        int bytesWritten = 0;
+                        int bytesToWrite = 1024;
+                        int totalBytes = printData.length;
+                        int remainingBytes = totalBytes;
+                        while (bytesWritten < totalBytes) {
+                            if (remainingBytes < bytesToWrite)
+                                bytesToWrite = remainingBytes;
+                            //Send data, 1024 bytes at a time until all data sent
+                            conn.write(printData, bytesWritten, bytesToWrite);
+                            bytesWritten += bytesToWrite;
+                            remainingBytes = remainingBytes - bytesToWrite;
+                            Thread.sleep(100);
+                        }
+                    }
+                } else if (record.startsWith("Record")) {
+                    String recordData[] = record.split(":TEXT:");
+                    int x = Integer.parseInt(recordData[2]);
+                    int y = Integer.parseInt(recordData[3]);
+                    docEZ.writeText(recordData[1], x, y);
+                }
+            }
+            printData = docEZ.getDocumentData();
+            if (!conn.getIsOpen()) {
+                conn.open();
+            }
+            int bytesWritten = 0;
+            int bytesToWrite = 1024;
+            int totalBytes = printData.length;
+            int remainingBytes = totalBytes;
+            while (bytesWritten < totalBytes) {
+                if (remainingBytes < bytesToWrite)
+                    bytesToWrite = remainingBytes;
+
+                //Send data, 1024 bytes at a time until all data sent
+                conn.write(printData, bytesWritten, bytesToWrite);
+                bytesWritten += bytesToWrite;
+                remainingBytes = remainingBytes - bytesToWrite;
+                Thread.sleep(100);
+            }
+
+            //signals to close connection
+            conn.close();
+            view.closeActivity(true, "Done Print");
+        } catch (Exception e) {
+            view.showError(e.getMessage());
+        }
+    }
+
     interface View {
         void showLoading();
 
@@ -222,5 +306,6 @@ public class MainPresenter {
 
         void showBluetoothData(List<BluetoothDevice> devices);
 
+        Bitmap getAssetData(String fileName);
     }
 }

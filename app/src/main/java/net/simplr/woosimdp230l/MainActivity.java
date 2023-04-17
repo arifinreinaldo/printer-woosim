@@ -4,6 +4,9 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +20,10 @@ import com.dascom.print.utils.BluetoothUtils;
 
 import net.simplr.woosimdp230l.databinding.ActivityMainBinding;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,27 +62,21 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (arrArgs == null) {
             arrArgs = new String[0];
         }
-        if (arrArgs.length > 0) {
-            Log.d("Printer", "processData: " + arrArgs.length);
-            presenter.processArray(arrArgs);
-        } else if (!action.isEmpty() || !value.isEmpty()) {
-            Log.d("Printer", "data: " + action + " - " + value);
-            presenter.processArgument(action, value);
+        if (!action.isEmpty()) {
+            if (arrArgs.length > 0) {
+                Log.d("Printer", "processData: " + arrArgs.length);
+                presenter.processArray(arrArgs);
+            } else if (!action.isEmpty() || !value.isEmpty()) {
+                Log.d("Printer", "data: " + action + " - " + value);
+                presenter.processArgument(action, value);
+            }
         } else {
-            mac = sp.getString(sp_mac, "");
-            if (mac.isEmpty()) {
-                //create adapter
-                binding.listDevice.setLayoutManager(new LinearLayoutManager(this));
-                binding.listDevice.setAdapter(adapter);
-                checkActivateBluetooth();
-            } else {
-                try {
-                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
-                    Thread.sleep(500);
-                    finishAffinity();
-                } catch (Exception e) {
-
-                }
+            arrArgs = intent.getStringArrayExtra("ONEIL_ARR_TO_PRINT");
+            if (arrArgs == null) {
+                arrArgs = new String[0];
+            }
+            if (arrArgs.length > 0) {
+                presenter.processOneilData(arrArgs);
             }
         }
     }
@@ -95,7 +96,30 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 }
         );
         Log.d("Printer", "onCreate: ");
-        processData();
+        registerAddress();
+    }
+
+    private void registerAddress() {
+        mac = sp.getString(sp_mac, "");
+        if (mac.isEmpty()) {
+            //create adapter
+            binding.listDevice.setLayoutManager(new LinearLayoutManager(this));
+            binding.listDevice.setAdapter(adapter);
+            checkActivateBluetooth();
+        } else {
+            arrArgs = new String[3];
+            arrArgs[0] = "Image:IMAGE:cp.png";
+            arrArgs[1] = "Record:TEXT:kalimat nya:TEXT:30:TEXT:1";
+            arrArgs[2] = "Record:TEXT:kalimat nya:TEXT:40:TEXT:1";
+            presenter.processOneilData(arrArgs);
+//            try {
+//                Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
+//                Thread.sleep(500);
+//                finishAffinity();
+//            } catch (Exception e) {
+//
+//            }
+        }
     }
 
     @Override
@@ -178,5 +202,22 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             finishAffinity();
         }
 
+    }
+
+    @Override
+    public Bitmap getAssetData(String fileName) {
+        AssetManager assetManager = getAssets();
+
+        InputStream istr;
+        Bitmap bitmap = null;
+        try {
+            istr = assetManager.open(fileName);
+            bitmap = BitmapFactory.decodeStream(istr);
+        } catch (IOException e) {
+            // handle exception
+            Log.d("Err", e.getMessage());
+        }
+
+        return bitmap;
     }
 }
