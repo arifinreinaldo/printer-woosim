@@ -77,6 +77,14 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             }
             if (arrArgs.length > 0) {
                 presenter.processOneilData(arrArgs);
+            } else {
+                try {
+                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
+                    Thread.sleep(500);
+                    finishAffinity();
+                } catch (Exception e) {
+
+                }
             }
         }
     }
@@ -107,18 +115,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             binding.listDevice.setAdapter(adapter);
             checkActivateBluetooth();
         } else {
-            arrArgs = new String[3];
-            arrArgs[0] = "Image:IMAGE:cp.png";
-            arrArgs[1] = "Record:TEXT:kalimat nya:TEXT:30:TEXT:1";
-            arrArgs[2] = "Record:TEXT:kalimat nya:TEXT:40:TEXT:1";
-            presenter.processOneilData(arrArgs);
-//            try {
-//                Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
-//                Thread.sleep(500);
-//                finishAffinity();
-//            } catch (Exception e) {
-//
-//            }
+            processData();
         }
     }
 
