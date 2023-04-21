@@ -220,8 +220,9 @@ public class MainPresenter {
     }
 
     public void processOneilData(String[] arrArgs) {
+        Long start = System.currentTimeMillis();
         byte[] printData = {0};
-        DocumentEZ docEZ = new DocumentEZ("MF204");
+        DocumentEZ docEZ = new DocumentEZ("MF185");
         DocumentLP docLP = new DocumentLP("!");
         //=============GENERATING RECEIPT====================================//
         try {
@@ -259,8 +260,10 @@ public class MainPresenter {
                     }
                 } else if (record.startsWith("Record")) {
                     String recordData[] = record.split(":TEXT:");
-                    int x = Integer.parseInt(recordData[2]);
-                    int y = Integer.parseInt(recordData[3]);
+                    double xDouble = Double.parseDouble(recordData[2]);
+                    double yDouble = Double.parseDouble(recordData[3]);
+                    int x = (int) Math.floor(xDouble);
+                    int y = (int) Math.floor(yDouble);
                     docEZ.writeText(recordData[1], x, y);
                 }
             }
@@ -285,6 +288,8 @@ public class MainPresenter {
 
             //signals to close connection
             conn.close();
+            Long end = System.currentTimeMillis();
+            Log.d(TAG, "processOneilData: " + (end - start));
             view.closeActivity(true, "Done Print");
         } catch (Exception e) {
             view.showError(e.getMessage());
