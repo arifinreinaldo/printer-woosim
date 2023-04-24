@@ -19,9 +19,9 @@ import com.dascom.print.connection.BluetoothConnection;
 import com.dascom.print.utils.BluetoothUtils;
 
 import net.simplr.woosimdp230l.databinding.ActivityMainBinding;
+import net.simplr.woosimdp230l.sunmi.BluetoothUtil;
+import net.simplr.woosimdp230l.sunmi.SunmiPrintHelper;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     SharedPreferences sp;
     private final String sp_file = "woosimdp230lmac";
     private final String sp_mac = "macaddress";
-    private String mac;
+    private String mac, printer_code;
     private MainPresenter presenter;
     private String[] arrArgs;
     ActivityMainBinding binding;
@@ -50,9 +50,13 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
     private void processData() {
         Intent intent = getIntent();
+        printer_code = intent.getStringExtra("PRINTER_CODE");
         action = intent.getStringExtra("ACTION_PRINT");
         value = intent.getStringExtra("TXT_TO_PRINT");
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
+        if (printer_code == null) {
+            printer_code = "";
+        }
         if (action == null) {
             action = "";
         }
@@ -75,15 +79,23 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             if (arrArgs == null) {
                 arrArgs = new String[0];
             }
+            for (int i = 0; i < arrArgs.length; i++) {
+                Log.d("Printing Data", "processData: " + arrArgs[i]);
+            }
             if (arrArgs.length > 0) {
                 presenter.processOneilData(arrArgs);
             } else {
-                try {
-                    Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
-                    Thread.sleep(500);
-                    finishAffinity();
-                } catch (Exception e) {
+                if (printer_code.equals("SUNMI_V2")) {
+                    arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
+                    presenter.processSunmiData(arrArgs);
+                } else {
+                    try {
+                        Toast.makeText(getApplicationContext(), "Need to call from external application", Toast.LENGTH_SHORT).show();
+                        Thread.sleep(500);
+                        finishAffinity();
+                    } catch (Exception e) {
 
+                    }
                 }
             }
         }
@@ -199,6 +211,23 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             finishAffinity();
         }
 
+    }
+
+    @Override
+    public void initSunmiPrinter(String[] arrArgs) {
+        SunmiPrintHelper.getInstance().initSunmiPrinterService(this);
+        showError("Printing");
+        //min 16max 40
+        if (!BluetoothUtil.isBlueToothPrinter) {
+            for (int i = 0; i < arrArgs.length; i++) {
+                SunmiPrintHelper.getInstance().printText(arrArgs[i] + "\n", 14, false, false, null);
+            }
+//            SunmiPrintHelper.getInstance().printText("Text testing", 30, true, true, null);
+            SunmiPrintHelper.getInstance().feedPaper();
+            closeActivity(true, "Done Print");
+        } else {
+
+        }
     }
 
     @Override

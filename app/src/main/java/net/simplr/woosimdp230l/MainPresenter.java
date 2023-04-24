@@ -1,22 +1,19 @@
 package net.simplr.woosimdp230l;
 
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Looper;
+import android.os.Handler;
 import android.util.Log;
 
 import com.dascom.print.ZPL;
 import com.dascom.print.utils.BluetoothUtils;
 import com.woosim.printer.WoosimCmd;
 
-import java.io.BufferedInputStream;
+import net.simplr.woosimdp230l.sunmi.SunmiPrintHelper;
+
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +40,8 @@ public class MainPresenter {
     ArrayList<String> records = new ArrayList<>();
     private final String sp_mac = "macaddress";
 
+
+    Handler handler;
 
     String paramMAC = "";
     String receiptNo = "";
@@ -296,6 +295,24 @@ public class MainPresenter {
         }
     }
 
+    public void processSunmiData(String[] arrArgs) {
+        if (SunmiPrintHelper.getInstance().sunmiPrinter == SunmiPrintHelper.NoSunmiPrinter) {
+            view.showError("No Sunmi Printer");
+        } else if (SunmiPrintHelper.getInstance().sunmiPrinter == SunmiPrintHelper.CheckSunmiPrinter) {
+            view.showError("Connecting");
+            handler = new Handler();
+            handler.postDelayed(() -> processSunmiData(arrArgs), 2000);
+//            handler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    setSubTitle();
+//                }
+//            }, 2000);
+        } else if (SunmiPrintHelper.getInstance().sunmiPrinter == SunmiPrintHelper.FoundSunmiPrinter) {
+            view.initSunmiPrinter(arrArgs);
+        }
+    }
+
     interface View {
         void showLoading();
 
@@ -310,6 +327,8 @@ public class MainPresenter {
         void onComplete();
 
         void showBluetoothData(List<BluetoothDevice> devices);
+
+        void initSunmiPrinter(String[] arrArgs);
 
         Bitmap getAssetData(String fileName);
     }
