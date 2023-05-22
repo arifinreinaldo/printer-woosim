@@ -49,7 +49,6 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     }
 
     private void processData() {
-
         Intent intent = getIntent();
         printerType = intent.getStringExtra("PrinterType");
         if (printerType == null) {
