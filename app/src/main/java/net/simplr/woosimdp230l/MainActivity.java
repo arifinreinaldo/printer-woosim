@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     BluetoothConnection bluetoothConnection;
     AdapterDevice adapter;
     List<BluetoothDevice> listDevice = new ArrayList<>();
-    String action, value;
+    String action, value, printerType;
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -49,6 +49,25 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
     }
 
     private void processData() {
+
+        Intent intent = getIntent();
+        printerType = intent.getStringExtra("PrinterType");
+        if (printerType == null) {
+            printerType = "";
+        }
+        arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
+        if (arrArgs == null) {
+            arrArgs = new String[1];
+            arrArgs[0] = "";
+        }
+        String savedMac = sp.getString(sp_mac, "");
+        Toast.makeText(this.getApplicationContext(), savedMac, Toast.LENGTH_SHORT).show();
+        if (printerType.equalsIgnoreCase("GHLWoosim")) {
+            presenter.processWoosim(arrArgs);
+        }
+    }
+
+    private void processData2() {
         Intent intent = getIntent();
         action = intent.getStringExtra("ACTION_PRINT");
         value = intent.getStringExtra("TXT_TO_PRINT");
@@ -97,6 +116,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         setContentView(binding.getRoot());
         sp = getSharedPreferences(sp_file, Context.MODE_PRIVATE);
         presenter = new MainPresenter(this, sp);
+
         adapter = new AdapterDevice(this, listDevice);
         adapter.setClickListener((view, position) -> {
                     Toast.makeText(getBaseContext(), "Address selected", Toast.LENGTH_SHORT).show();
