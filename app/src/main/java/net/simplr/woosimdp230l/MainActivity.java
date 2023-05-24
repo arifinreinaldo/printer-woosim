@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 Log.d("BMP ", data.length + " data");
                 bmp.recycle();
 
+                sendData(WoosimCmd.initPrinter());
                 sendData(WoosimCmd.setPageMode());
                 sendData(data);
                 sendData(WoosimCmd.PM_setStdMode());
