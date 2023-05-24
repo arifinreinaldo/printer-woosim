@@ -74,13 +74,13 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Intent intent = getIntent();
         printerType = intent.getStringExtra("PrinterType");
         if (printerType == null) {
-            printerType = "GHLWoosim";
+            printerType = "";
         }
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
-            arrArgs = new String[1];
+            arrArgs = new String[0];
 //            arrArgs[0] = "Image:com.simplrsales/Images/CustLogo2.png";
-            arrArgs[0] = "Text:Gan HupLee";
+//            arrArgs[0] = "Text:Gan HupLee";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
         String savedMac = sp.getString(sp_mac, "");
@@ -98,9 +98,11 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 } catch (Exception e) {
 
                 }
+            } else {
+                closeActivity(true, "Nothing to print");
             }
         } else {
-            closeActivity(true, "Need to Call from Simplr Application");
+            closeActivity(true, "Call from Simplr Application");
         }
     }
 
@@ -197,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                     bmp = Bitmap.createScaledBitmap(bmp, width, height, true);
                 }
                 Bitmap finalBmp = bmp;
-                Future<byte[]> futureTask = threadpool.submit(() -> WoosimImage.printBitmap(0, 0, 576, 300, finalBmp));
+                Future<byte[]> futureTask = threadpool.submit(() -> WoosimImage.printBitmap(0, 0, finalBmp.getWidth(), finalBmp.getHeight(), finalBmp));
                 while (!futureTask.isDone()) {
                     Thread.sleep(100);
                 }
