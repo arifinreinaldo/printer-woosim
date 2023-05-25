@@ -18,11 +18,12 @@ import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -34,7 +35,6 @@ import com.woosim.printer.WoosimService;
 
 import net.simplr.woosimdp230l.databinding.ActivityMainBinding;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -381,7 +381,29 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Log.d("Printer", "onCreate: ");
         mPrintService = new BluetoothPrintService(mHandler);
         mWoosim = new WoosimService(mHandler);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 2108);
+        }
         registerAddress();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 2108) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted
+                registerAddress();
+            } else {
+                try {
+                    Thread.sleep(300);
+                    closeActivity(false, "Image permission is rejected");
+                } catch (Exception e) {
+
+                }
+                // Permission is denied
+            }
+        }
     }
 
     private void connectDevice(String address) {

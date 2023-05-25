@@ -1,13 +1,10 @@
 package net.simplr.woosimdp230l;
 
-import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Looper;
 import android.util.Base64;
 import android.util.Log;
 
@@ -16,9 +13,7 @@ import com.dascom.print.utils.BluetoothUtils;
 import com.woosim.printer.WoosimCmd;
 import com.woosim.printer.WoosimImage;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
