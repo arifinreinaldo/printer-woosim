@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
 
                 }
             } else {
-                closeActivity(true, "Nothing to print");
+                closeActivity(true, "No Data to Print from Simplr Application");
             }
         } else {
             closeActivity(true, "Call from Simplr Application");
@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             case MESSAGE_DEVICE_NAME:
                 // save the connected device's name
                 String mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-                Toast.makeText(getApplicationContext(), "Initiate Printing in " + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Printing in " + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
 
                 break;
             case MESSAGE_TOAST:
