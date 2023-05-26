@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (data.length > 0) {
             try {
                 mPrintService.write(data);
-                Thread.sleep(100);
+                Thread.sleep(50);
             } catch (Exception e) {
 
             }
