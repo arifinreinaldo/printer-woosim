@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "net.simplr.woosimdp230l"
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 31
         versionCode 1
         versionName "1.0"

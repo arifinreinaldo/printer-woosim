@@ -10,10 +10,12 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.pdf.PdfRenderer;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Menu;
@@ -74,12 +76,12 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Intent intent = getIntent();
         printerType = intent.getStringExtra("PrinterType");
         if (printerType == null) {
-            printerType = "";
+            printerType = "GHLWoosim";
         }
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
-            arrArgs = new String[0];
-//            arrArgs[0] = "Image:com.simplrsales/Images/CustLogo2.png";
+            arrArgs = new String[1];
+            arrArgs[0] = "PDF:com.simplrsales/Photo/Html.pdf";
 //            arrArgs[0] = "Text:Gan HupLee";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
@@ -130,9 +132,47 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             } else if (sentence.startsWith("Text:")) {
                 sentence = sentence.replaceFirst("Text:", "");
                 printText(sentence);
+            } else if (sentence.startsWith("PDF:")) {
+                sentence = sentence.replaceFirst("PDF:", "");
+                printPDF(sentence);
             }
             index++;
             doPrintWoosim(arrArgs);
+        }
+    }
+
+    private void printPDF(String path) {
+        ExecutorService threadpool = Executors.newCachedThreadPool();
+        try {
+            if (!path.isEmpty()) {
+                File extPath = Environment.getExternalStoragePublicDirectory(path);
+                if (extPath.exists()) {
+                    ParcelFileDescriptor pfd = ParcelFileDescriptor.open(extPath,
+                            ParcelFileDescriptor.MODE_READ_ONLY);
+                    PdfRenderer renderer = new PdfRenderer(pfd);
+                    int paperWidth = 576;
+                    for (int i = 0; i < renderer.getPageCount(); i++) {
+                        PdfRenderer.Page page = renderer.openPage(i);
+// The destination bitmap format must be ARGB.
+// Original page is resized to fit roll paper width.
+                        Bitmap bmp = Bitmap.createBitmap(
+                                paperWidth,
+                                page.getHeight() * paperWidth / page.getWidth(),
+                                Bitmap.Config.ARGB_8888);
+                        page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT);
+                        sendData(WoosimImage.printCompressedBitmap(
+                                0, 0, bmp.getWidth(), bmp.getHeight(), bmp));
+                        bmp.recycle();
+                        page.close();
+                    }
+                    sendData(WoosimCmd.PM_setStdMode());
+                    renderer.close();
+                }
+            }
+        } catch (Exception e) {
+            Log.d("Error", e.getMessage());
+        } finally {
+            threadpool.shutdown();
         }
     }
 
