@@ -76,17 +76,18 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Intent intent = getIntent();
         printerType = intent.getStringExtra("PrinterType");
         if (printerType == null) {
-            printerType = "GHLWoosim";
+            printerType = "";
         }
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
-            arrArgs = new String[1];
-            arrArgs[0] = "PDF:com.simplrsales/Photo/Html.pdf";
+            arrArgs = new String[0];
 //            arrArgs[0] = "Text:Gan HupLee";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
         String savedMac = sp.getString(sp_mac, "");
-        connectDevice(savedMac);
+        if (!savedMac.isEmpty()) {
+            connectDevice(savedMac);
+        }
 
         if (printerType.equalsIgnoreCase("GHLWoosim")) {
             Log.d("length", arrArgs.length + " rows");
