@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "161820593219",
+    "project_id": "printer-woosim",
+    "storage_bucket": "printer-woosim.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:161820593219:android:79657ba06095bdde7518f6",
+        "android_client_info": {
+          "package_name": "net.simplr.woosimdp230l"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBY-t2jid6EzD5Lx9y96r2MW0-kCjMoH2A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
