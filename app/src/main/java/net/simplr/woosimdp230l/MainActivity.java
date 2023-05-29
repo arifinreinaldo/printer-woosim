@@ -81,7 +81,16 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
             arrArgs = new String[0];
-//            arrArgs[0] = "Text:Gan HupLee";
+//            arrArgs[0] = "Text:1";
+//            arrArgs[1] = "Text:2";
+//            arrArgs[2] = "Text:3";
+//            arrArgs[3] = "Text:4";
+//            arrArgs[4] = "Text:5";
+//            arrArgs[5] = "Text:6";
+//            arrArgs[6] = "Text:7";
+//            arrArgs[7] = "Text:8";
+//            arrArgs[8] = "Text:9";
+//            arrArgs[9] = "Text:10";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
         String savedMac = sp.getString(sp_mac, "");
@@ -188,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         if (data.length > 0) {
             try {
                 mPrintService.write(data);
-                Thread.sleep(50);
+                Thread.sleep(100);
             } catch (Exception e) {
 
             }
@@ -422,8 +431,8 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         Log.d("Printer", "onCreate: ");
         mPrintService = new BluetoothPrintService(mHandler);
         mWoosim = new WoosimService(mHandler);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 2108);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}, 2108);
         }
         registerAddress();
     }

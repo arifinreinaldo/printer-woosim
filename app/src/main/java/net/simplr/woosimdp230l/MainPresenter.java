@@ -302,7 +302,7 @@ public class MainPresenter {
             view.showBluetoothData(new ArrayList<>(data));
             view.hideLoading();
         } catch (Exception e) {
-
+            Log.d(TAG, "getBluetoothDevice: " + e.toString());
         }
     }
 
