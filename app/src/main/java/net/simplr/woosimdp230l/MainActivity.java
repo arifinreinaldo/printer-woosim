@@ -80,18 +80,18 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         }
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
-            arrArgs = new String[10];
+            arrArgs = new String[0];
 //            arrArgs[0] = "PDF:com.simplrsales/Photo/Html3.pdf";
-            arrArgs[0] = "Text:Tes Printing data Again";
-            arrArgs[1] = "Text:Tes Printing data Again";
-            arrArgs[2] = "Text:3";
-            arrArgs[3] = "Text:4";
-            arrArgs[4] = "Text:5";
-            arrArgs[5] = "Text:6";
-            arrArgs[6] = "Text:7";
-            arrArgs[7] = "Text:8";
-            arrArgs[8] = "Text:9";
-            arrArgs[9] = "Text:10";
+//            arrArgs[0] = "Text:Tes Printing data Again";
+//            arrArgs[1] = "Text:Tes Printing data Again";
+//            arrArgs[2] = "Text:3";
+//            arrArgs[3] = "Text:4";
+//            arrArgs[4] = "Text:5";
+//            arrArgs[5] = "Text:6";
+//            arrArgs[6] = "Text:7";
+//            arrArgs[7] = "Text:8";
+//            arrArgs[8] = "Text:9";
+//            arrArgs[9] = "Text:10";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
         String savedMac = sp.getString(sp_mac, "");
