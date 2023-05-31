@@ -80,17 +80,18 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         }
         arrArgs = intent.getStringArrayExtra("ARR_TO_PRINT");
         if (arrArgs == null) {
-            arrArgs = new String[0];
-//            arrArgs[0] = "Text:1";
-//            arrArgs[1] = "Text:2";
-//            arrArgs[2] = "Text:3";
-//            arrArgs[3] = "Text:4";
-//            arrArgs[4] = "Text:5";
-//            arrArgs[5] = "Text:6";
-//            arrArgs[6] = "Text:7";
-//            arrArgs[7] = "Text:8";
-//            arrArgs[8] = "Text:9";
-//            arrArgs[9] = "Text:10";
+            arrArgs = new String[10];
+//            arrArgs[0] = "PDF:com.simplrsales/Photo/Html3.pdf";
+            arrArgs[0] = "Text:Tes Printing data Again";
+            arrArgs[1] = "Text:Tes Printing data Again";
+            arrArgs[2] = "Text:3";
+            arrArgs[3] = "Text:4";
+            arrArgs[4] = "Text:5";
+            arrArgs[5] = "Text:6";
+            arrArgs[6] = "Text:7";
+            arrArgs[7] = "Text:8";
+            arrArgs[8] = "Text:9";
+            arrArgs[9] = "Text:10";
 //            arrArgs[2] = "Image:com.simplrsales/Photo/GHL01I000051.png";
         }
         String savedMac = sp.getString(sp_mac, "");
@@ -132,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             }
         } else {
             String sentence = arrArgs[index];
+            ExecutorService threadpool = Executors.newCachedThreadPool();
             if (sentence.startsWith("Image:")) {
                 sentence = sentence.replaceFirst("Image:", "");
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
@@ -144,15 +146,26 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 printText(sentence);
             } else if (sentence.startsWith("PDF:")) {
                 sentence = sentence.replaceFirst("PDF:", "");
-                printPDF(sentence);
+                String finalSentence = sentence;
+                try {
+//                    Future<String> futureTask = threadpool.submit(() -> printPDF(finalSentence));
+//                    while (!futureTask.isDone()) {
+//                        Thread.sleep(100);
+//                        Log.d("Printing", "NOT DOne");
+//                    }
+                    printPDF(finalSentence);
+                    threadpool.shutdown();
+                } catch (Exception e) {
+
+                }
             }
             index++;
             doPrintWoosim(arrArgs);
         }
     }
 
-    private void printPDF(String path) {
-        ExecutorService threadpool = Executors.newCachedThreadPool();
+    private String printPDF(String path) {
+        String rtn = "";
         try {
             if (!path.isEmpty()) {
                 File extPath = Environment.getExternalStoragePublicDirectory(path);
@@ -174,6 +187,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                                 0, 0, bmp.getWidth(), bmp.getHeight(), bmp));
                         bmp.recycle();
                         page.close();
+                        Thread.sleep(2000);
                     }
                     sendData(WoosimCmd.PM_setStdMode());
                     renderer.close();
@@ -182,22 +196,20 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         } catch (Exception e) {
             Log.d("Error", e.getMessage());
         } finally {
-            threadpool.shutdown();
+//            threadpool.shutdown();
         }
+        return rtn;
     }
 
     private void sendData(byte[] data) {
-        // Check that we're actually connected before trying printing
         if (mPrintService.getState() != BluetoothPrintService.STATE_CONNECTED) {
             Toast.makeText(this, "Not Connected", Toast.LENGTH_SHORT).show();
             return;
         }
         Log.d("Printing", "Prepare Printing");
-        // Check that there's actually something to send
         if (data.length > 0) {
             try {
                 mPrintService.write(data);
-                Thread.sleep(100);
             } catch (Exception e) {
 
             }
@@ -315,7 +327,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
             ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
             byteStream.write(WoosimCmd.setTextStyle(mEmphasis, mUnderline, false, mCharsize, mCharsize));
             byteStream.write(WoosimCmd.setTextAlign(mJustification));
-            byteStream.write(WoosimCmd.setCodeTable(WoosimCmd.MCU_ARM, WoosimCmd.CT_DBCS, WoosimCmd.FONT_MEDIUM));
+            byteStream.write(WoosimCmd.setCodeTable(WoosimCmd.MCU_ARM, WoosimCmd.CT_DBCS, WoosimCmd.FONT_LARGE));
             byteStream.write(command);
             if (text != null) byteStream.write(text);
             byteStream.write(WoosimCmd.printData());
@@ -433,8 +445,9 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         mWoosim = new WoosimService(mHandler);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT}, 2108);
+        } else {
+            registerAddress();
         }
-        registerAddress();
     }
 
     @Override
