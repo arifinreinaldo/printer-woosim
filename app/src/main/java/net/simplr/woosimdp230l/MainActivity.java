@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
                 }
         );
         Log.d("Printer", "onCreate: ");
-        registerAddress();
+        presenter.verifyESCPOS();
     }
 
     private void registerAddress() {
@@ -245,5 +245,22 @@ public class MainActivity extends AppCompatActivity implements MainPresenter.Vie
         }
 
         return bitmap;
+    }
+
+    @Override
+    public void showESCTesting() {
+        binding.loading.setVisibility(View.GONE);
+        binding.escpos.setVisibility(View.VISIBLE);
+        binding.btn1.setOnClickListener(view -> {
+            presenter.printESCText();
+        });
+        binding.btn2.setOnClickListener(view -> {
+            presenter.printESCImage(this.getApplicationContext());
+        });
+    }
+
+    @Override
+    public void registerBluetooth() {
+        registerAddress();
     }
 }

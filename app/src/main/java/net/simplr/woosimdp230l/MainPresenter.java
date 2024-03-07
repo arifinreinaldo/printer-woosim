@@ -2,11 +2,21 @@ package net.simplr.woosimdp230l;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
+import com.dantsu.escposprinter.EscPosPrinter;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection;
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections;
+import com.dantsu.escposprinter.exceptions.EscPosBarcodeException;
+import com.dantsu.escposprinter.exceptions.EscPosConnectionException;
+import com.dantsu.escposprinter.exceptions.EscPosEncodingException;
+import com.dantsu.escposprinter.exceptions.EscPosParserException;
+import com.dantsu.escposprinter.textparser.PrinterTextParserImg;
 import com.dascom.print.ZPL;
 import com.dascom.print.utils.BluetoothUtils;
 import com.woosim.printer.WoosimCmd;
@@ -313,6 +323,89 @@ public class MainPresenter {
         }
     }
 
+    public void verifyESCPOS() {
+        String savedMac = spData.getString(sp_mac, "");
+        if (!savedMac.isEmpty()) {
+            view.showESCTesting();
+        } else {
+            view.registerBluetooth();
+        } ;
+    }
+
+    public void printESCText() {
+        String savedMac = spData.getString(sp_mac, "");
+        BluetoothPrintersConnections bluetoothConnection = new BluetoothPrintersConnections();
+        BluetoothConnection[] list = bluetoothConnection.getList();
+        BluetoothConnection selectedDevice = null;
+        for (int i = 0; i < list.length; i++) {
+            BluetoothConnection con = list[i];
+            if (con.getDevice().getAddress().equals(savedMac)) {
+                selectedDevice = con;
+            }
+        }
+
+        if (selectedDevice == null) {
+            view.showError("Bluetooth is not found");
+        } else {
+            BluetoothConnection con = null;
+            EscPosPrinter printer = null;
+            try {
+                con = selectedDevice.connect();
+                printer = new EscPosPrinter(con, 203, 58, 100);
+                printer.printFormattedText("ORDER N°045");
+            } catch (EscPosConnectionException esc) {
+                view.showError(esc.getMessage());
+            } catch (EscPosEncodingException e) {
+                view.showError("ESC ENCODING " + e.getMessage());
+            } catch (EscPosBarcodeException e) {
+                view.showError("ESC Barcode Exc " + e.getMessage());
+            } catch (EscPosParserException e) {
+                view.showError("ESC Pos Parser " + e.getMessage());
+            } finally {
+                if (printer != null) {
+                    printer.disconnectPrinter();
+                }
+            }
+        }
+    }
+
+    public void printESCImage(Context context) {
+        String savedMac = spData.getString(sp_mac, "");
+        BluetoothPrintersConnections bluetoothConnection = new BluetoothPrintersConnections();
+        BluetoothConnection[] list = bluetoothConnection.getList();
+        BluetoothConnection selectedDevice = null;
+        for (int i = 0; i < list.length; i++) {
+            BluetoothConnection con = list[i];
+            if (con.getDevice().getAddress().equals(savedMac)) {
+                selectedDevice = con;
+            }
+        }
+
+        if (selectedDevice == null) {
+            view.showError("Bluetooth is not found");
+        } else {
+            BluetoothConnection con = null;
+            EscPosPrinter printer = null;
+            try {
+                con = selectedDevice.connect();
+                printer = new EscPosPrinter(con, 203, 58, 100);
+                printer.printFormattedText("<img>" + PrinterTextParserImg.bitmapToHexadecimalString(printer, context.getResources().getDrawableForDensity(R.drawable.ic_launcher, DisplayMetrics.DENSITY_MEDIUM)) + "</img>");
+            } catch (EscPosConnectionException esc) {
+                view.showError(esc.getMessage());
+            } catch (EscPosEncodingException e) {
+                view.showError("ESC ENCODING " + e.getMessage());
+            } catch (EscPosBarcodeException e) {
+                view.showError("ESC Barcode Exc " + e.getMessage());
+            } catch (EscPosParserException e) {
+                view.showError("ESC Pos Parser " + e.getMessage());
+            } finally {
+                if (printer != null) {
+                    printer.disconnectPrinter();
+                }
+            }
+        }
+    }
+
     interface View {
         void showLoading();
 
@@ -331,5 +424,9 @@ public class MainPresenter {
         void initSunmiPrinter(String[] arrArgs);
 
         Bitmap getAssetData(String fileName);
+
+        void showESCTesting();
+
+        void registerBluetooth();
     }
 }

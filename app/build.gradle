@@ -35,7 +35,8 @@ dependencies {
     implementation files('libs/dascom2.5.4.6620.jar')
     implementation files('libs/WoosimLib261.jar')
     implementation files('libs/oneil_lib_2.4.9.aar')
-    implementation files('libs/core-3.3.0.jar')
+    implementation 'com.google.zxing:core:3.5.3'
+    implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.3.0'
     implementation 'com.sunmi:printerlibrary:1.0.18'
     implementation 'com.afollestad:recyclical:1.1.1'
     def lottieVersion = "4.2.2"
